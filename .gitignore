@@ -1,0 +1,18 @@
+# Don't upload any SAM build artifacts.
+.aws-sam/
+deploy_template/
+*packaged.yaml
+
+.DS_Store
+
+# Ignore the build directory
+build/
+
+# Log file
+*.log
+
+# Ignore envs
+myenv
+
+
+/__pycache__

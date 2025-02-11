@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Users Management API
+
+Parameters:
+  EnvStageName:
+    Default: dev
+    Description: The Environment name (e.g. dev, prod, etc.)
+    Type: String
+  Region:
+    Default: us-east-1
+    Description: The region to deploy the managed services
+    Type: String
+  StackName:
+    Type: String
+    Default: creze-test-stack
+    Description: The name of the stack
+  RoleName:
+    Type: String
+    Default: atenea-role
+    Description: The default role name given to to apply to the functions
+  GitHubRepoName:
+    Type: String
+    Default: cr_tech_test
+    Description: The name of the GitHub repository
+
+Mappings:
+  LambdaAuthorizerSecrets:
+    local:
+      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-local"
+    dev:
+      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-dev"
+    qa:
+      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-qa"
+    prod:
+      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-prod"
+  LogLevels:
+    local:
+      LOG_LEVEL: "DEBUG"
+    dev:
+      LOG_LEVEL: "DEBUG"
+    qa:
+      LOG_LEVEL: "INFO"
+    prod:
+      LOG_LEVEL: "INFO"
+
+Globals:
+  Function:
+    MemorySize: 128
+    Timeout: 600
+    Environment:
+      Variables:
+        REGION: !Ref "Region"
+        ENV_NAME: !Ref "EnvStageName"
+        LOG_LEVEL: !FindInMap [LogLevels, !Ref EnvStageName, LOG_LEVEL]
+
+Resources:
+  LambdaSignInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}-LambdaSignInFunction-${EnvStageName}
+      MemorySize: 128
+      Environment:
+        Variables:
+          SM_LAMBDA_AUTHORIZER_COGNITO:
+            !FindInMap [
+              LambdaAuthorizerSecrets,
+              !Ref EnvStageName,
+              SM_LAMBDA_AUTHORIZER_COGNITO,
+            ]
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: Any
+      Tags:
+        Owner: CrezeTest
+        Environment: !Ref EnvStageName
+        StackName: !Ref StackName
+        GitHubRepoName: !Ref GitHubRepoName
+    Metadata:
+      DockerTag: !Sub "${AWS::StackName}-LambdaSignInFunction-${EnvStageName}"
+      DockerContext: ./lambdas/signin/
+      Dockerfile: Dockerfile
+
+Conditions:
+  IsLocal:
+    Fn::Equals:
+      - !Ref EnvStageName
+      - "local"

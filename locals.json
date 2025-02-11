@@ -1,0 +1,8 @@
+{
+  "Parameters": {
+    "ENV_NAME": "local",
+    "ATENEA_CORE_PARAMETERS": "atenea-core-secrets-dev",
+    "DB_PARAMETERS": "zeus-database-dev",
+    "ATENEA_RENAPO_PARAMETERS": "atenea-renapo-parameters-dev"
+  }
+}

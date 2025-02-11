@@ -1,0 +1,14 @@
+# More information about the configuration file can be found here:
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html
+version = 0.1
+
+[local.deploy.parameters]
+stack_name = "atenea-core-account-management"
+resolve_s3 = true
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+disable_rollback = false
+config-env = "locals.json"
+image_repositories = []
+parameter-overrides = "ParameterKey=EnvStageName,ParameterValue=local ParameterKey=Region,ParameterValue=us-east-1"
+no-confirm-changeset = true
