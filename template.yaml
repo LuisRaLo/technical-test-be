@@ -86,7 +86,7 @@ Resources:
         GitHubRepoName: !Ref GitHubRepoName
     Metadata:
       DockerTag: !Sub "${AWS::StackName}-LambdaSignInFunction-${EnvStageName}"
-      DockerContext: ./lambdas/signin/
+      DockerContext: ./lambdas/auth/
       Dockerfile: Dockerfile
 
 Conditions:
