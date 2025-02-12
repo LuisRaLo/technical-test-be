@@ -1,15 +1,15 @@
+from typing import Self
 from botocore.exceptions import ClientError
 from fastapi import status
 
-from src.domain.models.cognito import CognitoInitiateAuth
-from src.domain.models.sign_in import SignInResponse, SignInResult, SignInVerifyRequest
+from src.domain.models.mfa_secret import MFASecret, MFASecretResponse
 from src.domain.enums.messages import MessagesEnum
 from src.domain.repositories.cognito_repository import ICognitoRepository
 from src.domain.models.dev_response import DevResponse
 from src.infrastructure.utils.logger import CustomLogger
 
 
-class VerifyMFATokenService:
+class GetMFASecretService:
     def __init__(
         self,
         logger: CustomLogger,
@@ -18,7 +18,7 @@ class VerifyMFATokenService:
         self.logger = logger
         self.cognito_repository = cognito_repository
 
-    def execute(self, payload: SignInVerifyRequest) -> DevResponse:
+    def execute(self: Self, access_token: str) -> DevResponse:
         """
         Handle user sign-in process using username and password.
 
@@ -28,21 +28,25 @@ class VerifyMFATokenService:
         Returns:
             A token if sign-in is successful, None otherwise.
         """
-        final_response = SignInResponse(
+        final_response = MFASecretResponse(
             mensaje=MessagesEnum.OPERATION_UNSUCCESSFULL.value
         )
 
         try:
-            self.logger.debug("SESSION TOKEN", extra={"session": payload.session})
+            if not access_token:
+                final_response.mensaje = MessagesEnum.UNAUTHORIZED.value
 
-            verify_mfa = self.cognito_repository.software_token_auth_challenge(
-                username=payload.user,
-                session=payload.session,
-                authenticator_code=payload.authenticator_code,
-            )
+                return DevResponse(
+                    statusCode=status.HTTP_401_UNAUTHORIZED,
+                    result=final_response.__dict__,
+                )
+
+            bearer_token = access_token.split("Bearer ")[1]
+
+            get_mfa_secret = self.cognito_repository.get_mfa_secret(bearer_token)
 
             final_response.mensaje = MessagesEnum.OPERATION_SUCCESSFULL.value
-            final_response = self.__format_response(verify_mfa)
+            final_response.resultado = MFASecret(secret=get_mfa_secret).__dict__
 
             return DevResponse(
                 statusCode=status.HTTP_200_OK,
@@ -82,30 +86,3 @@ class VerifyMFATokenService:
                 statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 result=final_response.__dict__,
             )
-
-    def __format_response(self, signin_response: CognitoInitiateAuth) -> SignInResponse:
-        response = SignInResponse(
-            mensaje=MessagesEnum.OPERATION_UNSUCCESSFULL.value, resultado=None
-        )
-
-        self.logger.debug(signin_response)
-
-        # Check for missing fields and handle accordingly
-        auth_result = signin_response.get("AuthenticationResult", {})
-        if not auth_result:
-            self.logger.error("AuthenticationResult is missing")
-            response.mensaje = "Authentication result missing"
-            return response
-
-        result = SignInResult(
-            challege_parameters=signin_response.get("ChallengeParameters"),
-            authentication_result=auth_result,
-            retry_attempts=int(
-                signin_response.get("ChallengeParameters", {}).get("RetryAttempts", 0)
-            ),
-        )
-        response.resultado = result
-
-        self.logger.debug(response)
-
-        return response

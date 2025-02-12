@@ -11,3 +11,4 @@ class MessagesEnum(Enum):
     SESSION_INVALID_OR_EXPIRED = "Sesión no válida o expirada."
     INTERNAL_SERVER_ERROR = "Tenemos problemas con nuestro servicio, intente más tarde. Si persiste, favor de repostarlo."
     USERNAME_EXISTS = "El usuario ya existe."
+    UNAUTHORIZED = "No autorizado."

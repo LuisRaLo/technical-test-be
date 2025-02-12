@@ -1,6 +1,8 @@
 import os
 import boto3
 
+from src.application.confirm_mfa import ConfirmMFAService
+from src.application.get_mfa_secret import GetMFASecretService
 from src.application.confirm_sign_up_service import ConfirmSignUpService
 from src.domain.repositories.secrets_manager_repository import (
     ISecretsManagerRepository,
@@ -73,5 +75,17 @@ def get_signup_service() -> SignUpService:
 
 def get_confirm_signup_service() -> ConfirmSignUpService:
     return ConfirmSignUpService(
+        logger=get_logger(), cognito_repository=cognito_repository()
+    )
+
+
+def get_mfa_secret_service() -> GetMFASecretService:
+    return GetMFASecretService(
+        logger=get_logger(), cognito_repository=cognito_repository()
+    )
+
+
+def confirm_mfa_service() -> ConfirmMFAService:
+    return ConfirmMFAService(
         logger=get_logger(), cognito_repository=cognito_repository()
     )

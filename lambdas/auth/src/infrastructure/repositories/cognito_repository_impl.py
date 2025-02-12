@@ -1,6 +1,5 @@
 from typing import Any, Optional, Self
-from botocore.exceptions import ClientError
-from botocore.client import BaseClient, ClientError
+from botocore.client import BaseClient
 
 from src.domain.models.sm_lambda_auth_cognito import (
     SmLambdaAuthCognito,
@@ -55,7 +54,7 @@ class CognitoRepositoryImpl(ICognitoRepository):
             ClientId=self.cognito_configs.client_id,
         )
 
-    def get_mfa_secret(self, access_token: str) -> Optional[str]:
+    def get_mfa_secret(self: Self, access_token: str) -> Optional[str]:
         """
         Gets a token that can be used to associate an MFA application with the user.
 
@@ -63,21 +62,11 @@ class CognitoRepositoryImpl(ICognitoRepository):
                         authentication.
         :return: An MFA token that can be used to set up an MFA application.
         """
-        try:
-            response = self.cognito_client.associate_software_token(
-                AccessToken=access_token
-            )
+        response = self.cognito_client.associate_software_token(
+            AccessToken=access_token
+        )
 
-        except ClientError as err:
-            self.logger.error(
-                "Couldn't get MFA secret. Here's why: %s: %s",
-                err.response["Error"]["Code"],
-                err.response["Error"]["Message"],
-            )
-            raise
-        else:
-
-            return response["SecretCode"]
+        return response["SecretCode"]
 
     def verify_mfa(
         self: Self,
@@ -96,37 +85,18 @@ class CognitoRepositoryImpl(ICognitoRepository):
         Returns:
             True if MFA was successfully verified, False otherwise.
         """
-
-        if not (access_token or session):
-            raise ValueError("Either access_token or session must be provided")
-
-        try:
-            if access_token:
-                response = self.cognito_client.verify_software_token(
-                    AccessToken=access_token, UserCode=mfa_code
-                )
-            else:
-                response = self.cognito_client.verify_software_token(
-                    Session=session, UserCode=mfa_code
-                )
-        except ClientError as err:
-            self.logger.error(
-                "Couldn't verify MFA:",
-                extra={
-                    "code": err.response["Error"]["Code"],
-                    "message": err.response["Error"]["Message"],
-                },
+        if access_token:
+            response = self.cognito_client.verify_software_token(
+                AccessToken=access_token, UserCode=mfa_code
+            )
+        else:
+            response = self.cognito_client.verify_software_token(
+                Session=session, UserCode=mfa_code
             )
 
-            return False
-        except ValueError as err:
-            self.logger.error("Couldn't verify MFA.", extra={"err": err})
+        self.logger.info("MFA verified successfully.", extra={"res": response})
 
-            return False
-        else:
-            self.logger.info("MFA verified successfully.", extra={"res": response})
-
-            return response
+        return response
 
     def software_token_auth_challenge(
         self, username: str, session: str, authenticator_code: str

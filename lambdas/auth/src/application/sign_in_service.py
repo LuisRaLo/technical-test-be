@@ -85,6 +85,7 @@ class SignInService:
             response.resultado = result
         else:
             result = SignInResult(
+                challege_parameters=signin_response.get("ChallengeParameters"),
                 authentication_result=signin_response.get("AuthenticationResult"),
                 retry_attempts=int(
                     signin_response.get("ChallengeParameters", {}).get(

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
-from src.domain.models.cognito import AuthenticationResult
+from src.domain.models.cognito import AuthenticationResult, CognitoChallengeParameters
 from src.domain.enums.challenges_mfa_type import ChallengesMFATypeEnum
 
 
@@ -53,6 +53,7 @@ class SignInVerifyRequest(BaseModel):
 
 @dataclass
 class SignInResult:
+    challege_parameters: Optional[CognitoChallengeParameters]
     authentication_result: Optional[AuthenticationResult] = None
     retry_attempts: Optional[int] = None
 
