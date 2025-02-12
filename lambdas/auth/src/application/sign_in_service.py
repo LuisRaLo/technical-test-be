@@ -53,7 +53,13 @@ class SignInService:
         except ClientError as e:
             self.logger.error(f"An error occurred: {e}")
 
-            return None
+            if e.response["Error"]["Code"] == "UserNotConfirmedException":
+                final_response.mensaje = MessagesEnum.USER_NOT_CONFIRMED.value
+
+            return DevResponse(
+                statusCode=status.HTTP_404_NOT_FOUND,
+                result=final_response.__dict__,
+            )
 
         except Exception as err:
             self.logger.error(err)

@@ -39,6 +39,7 @@ class ConfirmSignUpService:
                 user=payload.user,
                 confirmation_code=payload.confirmation_code,
             )
+
         except ClientError as err:
             self.logger.error("Error in sign up service", extra={"error": str(err)})
 
@@ -59,18 +60,36 @@ class ConfirmSignUpService:
                     user=payload.user,
                 )
 
-                self.logger.info(
-                    "Proccess >>>>>>>",
-                    extra={"proccess": process},
-                )
-
                 if process:
                     return DevResponse(
-                        statusCode=status.HTTP_200_OK,
+                        statusCode=status.HTTP_401_UNAUTHORIZED,
                         result=final_response.__dict__,
                     )
+
+            elif err.response["Error"]["Code"] == "CodeMismatchException":
+                final_response.mensaje = MessagesEnum.OPERATION_UNSUCCESSFULL.value
+                final_response.resultado = MessagesEnum.CODE_INVALID.value
+
+                return DevResponse(
+                    statusCode=status.HTTP_401_UNAUTHORIZED,
+                    result=final_response.__dict__,
+                )
+
+            elif err.response["Error"]["Code"] == "LimitExceededException":
+                final_response.mensaje = MessagesEnum.LIMIT_EXCEEDED.value
+
+                return DevResponse(
+                    statusCode=status.HTTP_429_TOO_MANY_REQUESTS,
+                    result=final_response.__dict__,
+                )
+
         final_response.mensaje = MessagesEnum.OPERATION_SUCCESSFULL.value
         final_response.resultado = try_signup
+
+        self.logger.info(
+            "Proccess >>>>>>>",
+            extra={"proccess": try_signup},
+        )
 
         return DevResponse(
             statusCode=status.HTTP_200_OK,

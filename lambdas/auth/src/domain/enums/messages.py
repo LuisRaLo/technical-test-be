@@ -12,3 +12,5 @@ class MessagesEnum(Enum):
     INTERNAL_SERVER_ERROR = "Tenemos problemas con nuestro servicio, intente más tarde. Si persiste, favor de repostarlo."
     USERNAME_EXISTS = "El usuario ya existe."
     UNAUTHORIZED = "No autorizado."
+    USER_NOT_CONFIRMED = "Usuario no confirmado."
+    LIMIT_EXCEEDED = "Límite de intentos excedido, favor de intentar más tarde."

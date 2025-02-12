@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Request, Response
 
+from src.application.resend_mfa import ResendMFAService
+from src.domain.models.mfa_resend_code import ResendRequest
 from src.application.confirm_mfa import ConfirmMFAService
 from src.domain.models.confirm_mfa import ConfirmMFARequest, ConfirmMFAResponse
 from src.application.get_mfa_secret import GetMFASecretService
@@ -14,6 +16,7 @@ from src.application.services import (
     confirm_mfa_service,
     get_logger,
     get_mfa_secret_service,
+    get_resend_mfa_service,
     get_signin_service,
     get_verify_mfa_service,
 )
@@ -35,7 +38,7 @@ async def signin(
     logger: CustomLogger = Depends(get_logger),
 ):
     logger.info(
-        "Init Proccess",
+        "Signin Proccess",
         extra={"path": "POST /auth/signin", "payload": payload},
     )
 
@@ -44,7 +47,7 @@ async def signin(
     response.status_code = proccess.statusCode
 
     logger.info(
-        "Proccess is finished",
+        "Login is successfully",
         extra={"statusCode": proccess.statusCode, "response": proccess.result},
     )
 
@@ -74,7 +77,7 @@ async def verify_mfa(
     response.status_code = proccess.statusCode
 
     logger.info(
-        "Proccess is finished",
+        "MFA Code Verified",
         extra={"statusCode": proccess.statusCode, "response": proccess.result},
     )
 
@@ -107,7 +110,7 @@ async def get_mfa_secret(
     response.status_code = proccess.statusCode
 
     logger.info(
-        "Proccess is finished",
+        "MFA Secret is successfully",
         extra={"statusCode": proccess.statusCode, "response": proccess.result},
     )
 
@@ -134,6 +137,30 @@ async def confirm_mfa(
     )
 
     proccess = confirm_mfa_service.execute(payload)
+
+    response.status_code = proccess.statusCode
+
+    logger.info(
+        "Proccess is finished",
+        extra={"statusCode": proccess.statusCode, "response": proccess.result},
+    )
+
+    return proccess.result
+
+
+@router.post(PathsEnum.mfa_resend.value)
+async def resend_mfa(
+    response: Response,
+    payload: ResendRequest,
+    resend_mfa_service: ResendMFAService = Depends(get_resend_mfa_service),
+    logger: CustomLogger = Depends(get_logger),
+):
+    logger.info(
+        "Init Proccess",
+        extra={"path": "POST /auth/mfa/resend", "payload": payload},
+    )
+
+    proccess = resend_mfa_service.execute(payload)
 
     response.status_code = proccess.statusCode
 

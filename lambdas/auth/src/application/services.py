@@ -1,6 +1,7 @@
 import os
 import boto3
 
+from src.application.resend_mfa import ResendMFAService
 from src.application.confirm_mfa import ConfirmMFAService
 from src.application.get_mfa_secret import GetMFASecretService
 from src.application.confirm_sign_up_service import ConfirmSignUpService
@@ -87,5 +88,11 @@ def get_mfa_secret_service() -> GetMFASecretService:
 
 def confirm_mfa_service() -> ConfirmMFAService:
     return ConfirmMFAService(
+        logger=get_logger(), cognito_repository=cognito_repository()
+    )
+
+
+def get_resend_mfa_service() -> ResendMFAService:
+    return ResendMFAService(
         logger=get_logger(), cognito_repository=cognito_repository()
     )
