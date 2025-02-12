@@ -20,7 +20,7 @@ from src.infrastructure.repositories.secrets_manager_repository_impl import (
 
 
 region = os.getenv("REGION")
-sm_lambda_auth_cognito_secretname = os.getenv("SM_LAMBDA_AUTHORIZER_COGNITO")
+sm_lambda_auth_cognito_secretname = os.getenv("SMLAMBDAAUTHORIZERCOGNITO")
 
 
 def create_boto3_client(service_name: str, region: str):
@@ -33,7 +33,7 @@ cognito_client = create_boto3_client("cognito-idp", region)
 
 ############ REPOSITORIES ############
 def get_logger() -> CustomLogger:
-    level_log = os.getenv("LOG_LEVEL", "INFO")
+    level_log = os.getenv("LOGLEVEL", "INFO")
     return CustomLogger(level_log=level_log)
 
 

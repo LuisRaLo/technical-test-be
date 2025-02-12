@@ -8,23 +8,10 @@ NC='\033[0m'
 ENV="${EnvStageName:=dev}"
 REGION="${Region:=us-east-1}"
 AWS_ACCOUNT_ID="${AWSAcctId:=730335368674}"
-STACK_NAME="atenea-core-account-management-stack"
+STACK_NAME="creze-test-stack"
 
-export GOPRIVATE=github.com/atene-ai/*
-export CGO_ENABLED=0
 
-MOCK_DIR="mocks"
-LAMBDAS_DIR="handlers"
-
-echo "⚙️) ${GREEN}Building Lambdas...${NC}"
-for directory in $(find "$LAMBDAS_DIR" -type d -maxdepth 1 -mindepth 1); do
-    dir_name=$(basename "$directory")
-    echo "📁) ${GREEN}Checking ${NC}$dir_name ${GREEN}module...${NC}"
-    if [ "$dir_name" != $MOCK_DIR ]; then
-        echo "⚙️) ${GREEN}Building ${NC}$dir_name ${GREEN}module...${NC}"
-        cd $LAMBDAS_DIR/"$dir_name" && env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux GOAMD64=v1 go build -o bootstrap -ldflags="-s -w" && cd ../../
-    fi
-done
+aws ecr describe-repositories --repository-names $STACK_NAME || aws ecr create-repository --repository-name $STACK_NAME
 
 
 echo "Building Docker images"
@@ -42,11 +29,11 @@ echo "Deploying stack"
 sam deploy \
 --template-file packaged.yaml \
 --region $REGION \
---stack-name atenea-core-account-management-stack \
+--stack-name  creze-test-stack \
 --s3-bucket "app-deploys-bucket" \
 --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
 --image-repository "$AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$STACK_NAME" \
 --parameter-overrides "ParameterKey=EnvStageName,ParameterValue=$ENV ParameterKey=Region,ParameterValue=$REGION" \
 --no-fail-on-empty-changeset \
 --disable-rollback \
---tags project=atenea environment="${ENV}"
+--tags project=creze_test environment="${ENV}" owner=CrezeTest stackName="${STACK_NAME}" GitHubRepoName=technical-test-be

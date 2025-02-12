@@ -28,22 +28,22 @@ Parameters:
 Mappings:
   LambdaAuthorizerSecrets:
     local:
-      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-local"
+      SMLAMBDAAUTHORIZERCOGNITO: "lambda-authorizher-cognito-local"
     dev:
-      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-dev"
+      SMLAMBDAAUTHORIZERCOGNITO: "lambda-authorizher-cognito-dev"
     qa:
-      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-qa"
+      SMLAMBDAAUTHORIZERCOGNITO: "lambda-authorizher-cognito-qa"
     prod:
-      SM_LAMBDA_AUTHORIZER_COGNITO: "lambda-authorizher-cognito-prod"
+      SMLAMBDAAUTHORIZERCOGNITO: "lambda-authorizher-cognito-prod"
   LogLevels:
     local:
-      LOG_LEVEL: "DEBUG"
+      LOGLEVEL: "DEBUG"
     dev:
-      LOG_LEVEL: "DEBUG"
+      LOGLEVEL: "DEBUG"
     qa:
-      LOG_LEVEL: "INFO"
+      LOGLEVEL: "INFO"
     prod:
-      LOG_LEVEL: "INFO"
+      LOGLEVEL: "INFO"
 
 Globals:
   Function:
@@ -53,7 +53,7 @@ Globals:
       Variables:
         REGION: !Ref "Region"
         ENV_NAME: !Ref "EnvStageName"
-        LOG_LEVEL: !FindInMap [LogLevels, !Ref EnvStageName, LOG_LEVEL]
+        LOG_LEVEL: !FindInMap [LogLevels, !Ref EnvStageName, LOGLEVEL]
 
 Resources:
   LambdaSignInFunction:
@@ -67,23 +67,17 @@ Resources:
       MemorySize: 128
       Environment:
         Variables:
-          SM_LAMBDA_AUTHORIZER_COGNITO:
-            !FindInMap [
-              LambdaAuthorizerSecrets,
-              !Ref EnvStageName,
-              SM_LAMBDA_AUTHORIZER_COGNITO,
-            ]
+          SMLAMBDAAUTHORIZERCOGNITO: !FindInMap
+            - LambdaAuthorizerSecrets
+            - !Ref EnvStageName
+            - SMLAMBDAAUTHORIZERCOGNITO
+
       Events:
         Api:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: Any
-      Tags:
-        Owner: CrezeTest
-        Environment: !Ref EnvStageName
-        StackName: !Ref StackName
-        GitHubRepoName: !Ref GitHubRepoName
     Metadata:
       DockerTag: !Sub "${AWS::StackName}-LambdaSignInFunction-${EnvStageName}"
       DockerContext: ./lambdas/auth/
