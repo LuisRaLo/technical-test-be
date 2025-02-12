@@ -1,13 +1,15 @@
 import os
 import boto3
 
+from src.application.confirm_sign_up_service import ConfirmSignUpService
 from src.domain.repositories.secrets_manager_repository import (
     ISecretsManagerRepository,
 )
-from src.domain.repositories.cognito_repository import ICognitoRepository
-from src.domain.models.sm_lambda_auth_cognito import SmLambdaAuthCognito
 from src.application.verify_mfa_token import VerifyMFATokenService
 from src.application.sign_in_service import SignInService
+from src.application.sign_up_service import SignUpService
+from src.domain.repositories.cognito_repository import ICognitoRepository
+from src.domain.models.sm_lambda_auth_cognito import SmLambdaAuthCognito
 from src.infrastructure.utils.logger import CustomLogger
 from src.infrastructure.repositories.cognito_repository_impl import (
     CognitoRepositoryImpl,
@@ -61,5 +63,15 @@ def get_signin_service() -> SignInService:
 
 def get_verify_mfa_service() -> VerifyMFATokenService:
     return VerifyMFATokenService(
+        logger=get_logger(), cognito_repository=cognito_repository()
+    )
+
+
+def get_signup_service() -> SignUpService:
+    return SignUpService(logger=get_logger(), cognito_repository=cognito_repository())
+
+
+def get_confirm_signup_service() -> ConfirmSignUpService:
+    return ConfirmSignUpService(
         logger=get_logger(), cognito_repository=cognito_repository()
     )

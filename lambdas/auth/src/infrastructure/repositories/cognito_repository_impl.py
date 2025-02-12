@@ -1,4 +1,4 @@
-from typing import Optional, Self
+from typing import Any, Optional, Self
 from botocore.exceptions import ClientError
 from botocore.client import BaseClient, ClientError
 
@@ -140,3 +140,71 @@ class CognitoRepositoryImpl(ICognitoRepository):
                 "SOFTWARE_TOKEN_MFA_CODE": authenticator_code,
             },
         )
+
+    def signup(self: Self, email: str, password: str, name: str) -> Any:
+        """
+        Sign up with email and password.
+
+        Args:
+            email: Email of the user
+            password: Password of the user to sign up
+            name: Name of the user
+
+        Returns:
+            The access token if the user is successfully signed up, None otherwise
+        """
+        return self.cognito_client.sign_up(
+            ClientId=self.cognito_configs.client_id,
+            Username=email,
+            Password=password,
+            UserAttributes=[
+                {"Name": "email", "Value": email},
+                {"Name": "name", "Value": name},
+            ],
+        )
+
+    def confirm_user_sign_up(self, user: str, confirmation_code: str) -> bool:
+        """
+        Confirms a previously created user. A user must be confirmed before they
+        can sign in to Amazon Cognito.
+
+        :param user_name: The name of the user to confirm.
+        :param confirmation_code: The confirmation code sent to the user's registered email address.
+        :return: True when the confirmation succeeds.
+        """
+        # try:
+        kwargs = {
+            "ClientId": self.cognito_configs.client_id,
+            "Username": user,
+            "ConfirmationCode": confirmation_code,
+        }
+
+        confirm = self.cognito_client.confirm_sign_up(**kwargs)
+
+        self.logger.info("User confirmed successfully.", extra={"res": confirm})
+
+        """ except ClientError as err:
+        self.logger.error(
+            "Couldn't confirm sign up for %s. Here's why: %s: %s",
+            user_name,
+            err.response["Error"]["Code"],
+            err.response["Error"]["Message"],
+        )
+        raise 
+        """
+        return True
+
+    def resend_confirmation(self, user: str):
+        """
+        Prompts Amazon Cognito to resend an email with a new confirmation code.
+
+        :param user_name: The name of the user who will receive the email.
+        :return: Delivery information about where the email is sent.
+        """
+        kwargs = {"ClientId": self.cognito_configs.client_id, "Username": user}
+
+        response = self.cognito_client.resend_confirmation_code(**kwargs)
+
+        delivery = response["CodeDeliveryDetails"]
+
+        return delivery

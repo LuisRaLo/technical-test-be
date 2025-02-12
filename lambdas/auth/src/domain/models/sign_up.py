@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import Any, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
@@ -34,3 +36,26 @@ class SignUpRequest(BaseModel):
         if self.password != self.repeat_password:
             raise ValueError("Passwords do not match")
         return self
+
+
+class ConfirmSignUpRequest(BaseModel):
+    user: str = Field(..., description="The email to confirm")
+    confirmation_code: str = Field(..., description="The confirmation code")
+
+    @field_validator("user")
+    def user_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("User cannot be empty or just spaces")
+        return v
+
+    @field_validator("confirmation_code")
+    def confirmation_code_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("Confirmation code cannot be empty or just spaces")
+        return v
+
+
+@dataclass
+class SignUpResponse:
+    mensaje: str
+    resultado: Optional[Any] = None
