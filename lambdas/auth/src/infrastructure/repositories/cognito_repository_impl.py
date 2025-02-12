@@ -178,3 +178,20 @@ class CognitoRepositoryImpl(ICognitoRepository):
         delivery = response["CodeDeliveryDetails"]
 
         return delivery
+
+    def set_user_mfa_preference(
+        self: Self,
+        software_token_mfa_settings: dict,
+        access_token: str,
+    ) -> Any:
+        """
+        Set the user's MFA preference.
+
+        Args:
+            software_token_mfa_settings: The MFA settings for the user
+            access_token: The access token of the user
+        """
+        return self.cognito_client.set_user_mfa_preference(
+            SoftwareTokenMfaSettings=software_token_mfa_settings,
+            AccessToken=access_token,
+        )

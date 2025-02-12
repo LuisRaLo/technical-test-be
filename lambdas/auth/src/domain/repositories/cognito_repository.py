@@ -34,9 +34,16 @@ class ICognitoRepository(ABC):
         pass
 
     @abstractmethod
-    def confirm_user_sign_up(self, user: str, confirmation_code: str) -> bool:
+    def confirm_user_sign_up(user: str, confirmation_code: str) -> bool:
         pass
 
     @abstractmethod
-    def resend_confirmation(self, user: str):
+    def resend_confirmation(user: str):
+        pass
+
+    @abstractmethod
+    def set_user_mfa_preference(
+        software_token_mfa_settings: dict,
+        access_token: str,
+    ) -> Any:
         pass

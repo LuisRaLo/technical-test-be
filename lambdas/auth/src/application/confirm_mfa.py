@@ -40,6 +40,15 @@ class ConfirmMFAService:
                 access_token=payload.access_token,
             )
 
+            if verify_mfa.get("Status") == "SUCCESS":
+                self.cognito_repository.set_user_mfa_preference(
+                    software_token_mfa_settings={
+                        "Enabled": True,
+                        "PreferredMfa": True,
+                    },
+                    access_token=payload.access_token,
+                )
+
             final_response.mensaje = MessagesEnum.OPERATION_SUCCESSFULL.value
             final_response.resultado = verify_mfa.get("Status")
 
